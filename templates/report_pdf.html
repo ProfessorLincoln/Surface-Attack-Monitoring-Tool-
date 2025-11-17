@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Scan Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 20px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .muted {
+      color: #666;
+    }
+
+    pre {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Scan Report</h1>
+    <div class="section">
+      <h2>Target</h2>
+      <p>{{ target }}</p>
+      <p class="muted">Generated at {{ generated_at }}</p>
+    </div>
+
+
+    <div class="section">
+      <h2>VirusTotal</h2>
+      {% if virustotal %}
+      <div class="card">
+        {% if virustotal.last_analysis_stats %}
+        <p><strong>Last Analysis Stats:</strong></p>
+        <pre>{{ virustotal.last_analysis_stats | tojson(indent=2) }}</pre>
+        {% endif %}
+        {% if virustotal.whois %}
+        <p><strong>WHOIS:</strong></p>
+        <pre>{{ virustotal.whois }}</pre>
+        {% endif %}
+        {% if virustotal.reputation is not none %}
+        <p><strong>Reputation:</strong> {{ virustotal.reputation }}</p>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="muted">No data</p>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <h2>ProjectDiscovery</h2>
+      {% if projectdiscovery and projectdiscovery.summary %}
+      <div class="grid">
+        {% for item in projectdiscovery.summary %}
+        <div class="card">
+          {% if item.tool %}<p><strong>Tool:</strong> {{ item.tool }}</p>{% endif %}
+          {% if item.status_code %}<p><strong>Status:</strong> {{ item.status_code }}</p>{% endif %}
+          {% if item.url %}<p><strong>URL:</strong> {{ item.url }}</p>{% endif %}
+          {% if item.ip %}<p><strong>IP:</strong> {{ item.ip }}</p>{% endif %}
+          {% if item.title %}<p><strong>Title:</strong> {{ item.title }}</p>{% endif %}
+          {% if item.server %}<p><strong>Server:</strong> {{ item.server }}</p>{% endif %}
+          {% if item.content_type %}<p><strong>Content-Type:</strong> {{ item.content_type }}</p>{% endif %}
+          {% if item.tls_version %}<p><strong>TLS:</strong> {{ item.tls_version }}</p>{% endif %}
+          {% if item.severity %}<p><strong>Severity:</strong> {{ item.severity }}</p>{% endif %}
+          {% if item.details %}
+          <p class="mb-1"><strong>Details:</strong></p>
+          <pre
+            style="max-height: 240px; overflow:auto; white-space: pre-wrap;">{{ item.details | tojson(indent=2) }}</pre>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted">No data</p>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <h2>Severity</h2>
+      {% if summary and (summary.severity or summary.overall_status) %}
+      {% set sev = summary.severity or summary.overall_status %}
+      <p><strong>Overall Severity:</strong> {{ sev }}</p>
+      {% if summary.text %}
+      <p><strong>Details:</strong> {{ summary.text }}</p>
+      {% endif %}
+      {% if summary.recommendations and summary.recommendations|length %}
+      <p><strong>Recommendations:</strong></p>
+      <ul>
+        {% for rec in summary.recommendations %}
+        <li>{{ rec }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% else %}
+      <p class="muted">No severity information available.</p>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <h2>AI Insights</h2>
+      {% if ai_insights %}
+      <p><strong>Concern Level:</strong> {{ ai_insights.concern_level or 'Unknown' }}</p>
+      {% if ai_insights.explanation %}
+      <p><strong>Explanation:</strong> {{ ai_insights.explanation }}</p>
+      {% endif %}
+      {% if ai_insights.key_findings and ai_insights.key_findings|length %}
+      <p><strong>Key Findings:</strong></p>
+      <ul>
+        {% for k in ai_insights.key_findings %}
+        <li>{{ k }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if ai_insights.recommended_actions and ai_insights.recommended_actions|length %}
+      <p><strong>Recommended Actions:</strong></p>
+      <ul>
+        {% for a in ai_insights.recommended_actions %}
+        <li>{{ a }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% else %}
+      <p class="muted">No AI insights available.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+
+</html>

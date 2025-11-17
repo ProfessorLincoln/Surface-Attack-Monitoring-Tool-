@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Scan Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="mb-4 text-center">Scan Results for example.com</h1>
+        <a href="/" class="btn btn-secondary mb-4">New Scan</a>
+
+        <div class="accordion" id="resultsAccordion">
+            <!-- Shodan Results -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#shodan"
+                        aria-expanded="true">
+                        Shodan Data
+                    </button>
+                </h2>
+                <div id="shodan" class="accordion-collapse collapse show">
+                    <div class="accordion-body">
+                        
+                        <p class="text-muted">No data found from Shodan for this target.</p>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- VirusTotal Results -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#virustotal">
+                        VirusTotal Data
+                    </button>
+                </h2>
+                <div id="virustotal" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        
+                        <p class="text-muted">No data found from VirusTotal for this target.</p>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- ProjectDiscovery Results -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#projectdiscovery">
+                        ProjectDiscovery Data
+                    </button>
+                </h2>
+                <div id="projectdiscovery" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        
+                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        HTTP Service: 200
+                                        <span class="badge bg-dark ms-2">httpx</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>URL:</strong> https://example.com</p>
+                                        <p><strong>IP:</strong> 23.215.0.136</p>
+                                        <p><strong>Title:</strong> Example Domain</p>
+                                        
+                                        <p><strong>Content Type:</strong> text/html</p>
+                                        <p><strong>TLS Version:</strong> {&#39;host&#39;: &#39;example.com&#39;, &#39;port&#39;: &#39;443&#39;, &#39;probe_status&#39;: True, &#39;tls_version&#39;: &#39;tls13&#39;, &#39;cipher&#39;: &#39;TLS_AES_256_GCM_SHA384&#39;, &#39;not_before&#39;: &#39;2025-01-15T00:00:00Z&#39;, &#39;not_after&#39;: &#39;2026-01-15T23:59:59Z&#39;, &#39;subject_dn&#39;: &#39;CN=*.example.com, O=Internet Corporation for Assigned Names and Numbers, L=Los Angeles, ST=California, C=US&#39;, &#39;subject_cn&#39;: &#39;*.example.com&#39;, &#39;subject_org&#39;: [&#39;Internet Corporation for Assigned Names and Numbers&#39;], &#39;subject_an&#39;: [&#39;*.example.com&#39;, &#39;example.com&#39;], &#39;serial&#39;: &#39;0A:D8:93:BA:FA:68:B0:B7:FB:7A:40:4F:06:EC:AF:9A&#39;, &#39;issuer_dn&#39;: &#39;CN=DigiCert Global G3 TLS ECC SHA384 2020 CA1, O=DigiCert Inc, C=US&#39;, &#39;issuer_cn&#39;: &#39;DigiCert Global G3 TLS ECC SHA384 2020 CA1&#39;, &#39;issuer_org&#39;: [&#39;DigiCert Inc&#39;], &#39;fingerprint_hash&#39;: {&#39;md5&#39;: &#39;c33979ff8bc19a94820d6804b3681881&#39;, &#39;sha1&#39;: &#39;310db7af4b2bc9040c8344701aca08d0c69381e3&#39;, &#39;sha256&#39;: &#39;455943cf819425761d1f950263ebf54755d8d684c25535943976f488bc79d23b&#39;}, &#39;wildcard_certificate&#39;: True, &#39;tls_connection&#39;: &#39;ctls&#39;, &#39;sni&#39;: &#39;example.com&#39;}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        HTTP Service: N/A
+                                        <span class="badge bg-dark ms-2">subfinder</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>URL:</strong> example.com</p>
+                                        <p><strong>IP:</strong> 23.215.0.136</p>
+                                        <p><strong>Title:</strong> Subfinder unavailable or no data: Subfinder skipped in fast mode</p>
+                                        
+                                        
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        HTTP Service: N/A
+                                        <span class="badge bg-dark ms-2">nuclei</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>URL:</strong> https://example.com</p>
+                                        <p><strong>IP:</strong> 23.215.0.136</p>
+                                        <p><strong>Title:</strong> Nuclei unavailable or no findings: Nuclei skipped in fast mode</p>
+                                        
+                                        
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        <a href="/report" class="btn btn-outline-primary">
+            Generate Report
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Scan Results</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='asm-favicon.svg') }}">
+</head>
+
+<style>
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1f2937, #0ea5e9);
+    color: #0b132b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    padding-top: 56px;
+    /* offset for fixed-top navbar */
+  }
+
+  html {
+    scroll-padding-top: 64px;
+  }
+
+  .page-card {
+    max-width: 1000px;
+    width: 100%;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(2, 8, 23, .22);
+    overflow: hidden;
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #0ea5e9, #22c55e);
+    color: #fff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .page-title {
+    margin: 0;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .brand .badge {
+    background: rgba(255, 255, 255, .2);
+    border: 1px solid rgba(255, 255, 255, .35);
+  }
+
+  .page-body {
+    padding: 1.5rem;
+  }
+</style>
+
+<body>
+  {% include '_navbar.html' %}
+  <div class="page-card">
+    <div class="page-header">
+      <div class="page-title"><span class="brand"><span class="badge text-bg-light">Results</span> for {{ target
+          }}</span></div>
+      <div>
+        <a href="/" class="btn btn-outline-light text-dark me-2">New Scan</a>
+        <button id="downloadPagePdf" class="btn btn-outline-light text-dark">Download Page as PDF</button>
+      </div>
+    </div>
+    <div class="page-body" id="resultsContainerRoot">
+      <div class="mb-4">
+        {% if summary and (summary.severity or summary.overall_status) %}
+        {% set sev = summary.severity or summary.overall_status %}
+        {% set badge = 'success' if sev == 'Low' else ('warning' if sev == 'Medium' else 'danger') %}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Overall Severity</h5>
+            <span class="badge bg-{{ badge }}">{{ sev }}</span>
+            {% if summary.text %}
+            <p class="mt-2 mb-0">{{ summary.text }}</p>
+            {% endif %}
+            {% if summary.recommendations and summary.recommendations|length %}
+            <ul class="mt-2 mb-0">
+              {% for rec in summary.recommendations %}
+              <li>{{ rec }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if ai_insights %}
+        {% set concern = ai_insights.concern_level or 'Unknown' %}
+        {% set badge2 = 'success' if concern == 'Low' else ('warning' if concern == 'Medium' else 'danger') %}
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title d-flex align-items-center gap-2">AI Insights <span class="badge bg-{{ badge2 }}">{{
+                concern }}</span></h5>
+            {% if ai_insights.explanation %}
+            <p class="mb-2">{{ ai_insights.explanation }}</p>
+            {% endif %}
+            {% if ai_insights.key_findings and ai_insights.key_findings|length %}
+            <p class="mb-1"><strong>Key findings:</strong></p>
+            <ul class="mb-2">
+              {% for k in ai_insights.key_findings %}
+              <li>{{ k }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if ai_insights.recommended_actions and ai_insights.recommended_actions|length %}
+            <p class="mb-1"><strong>Recommended actions:</strong></p>
+            <ul class="mb-0">
+              {% for a in ai_insights.recommended_actions %}
+              <li>{{ a }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="container mt-3">
+          {% if scan_id %}
+          <div class="alert alert-success" role="alert">
+            Saved to history (ID: {{ scan_id }}).
+            <a href="/history" class="alert-link">View history</a> ·
+            <a href="/report/{{ scan_id }}" class="alert-link">Open report</a> ·
+            <a href="/download/{{ scan_id }}" class="alert-link">Download PDF</a>
+          </div>
+          {% endif %}
+          {% if (not scan_id) and persist_error %}
+          <div class="alert alert-warning" role="alert">
+            Not saved to history: {{ persist_error }}
+            {% if vt_error %}<br />VirusTotal note: {{ vt_error }}{% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="accordion" id="resultsAccordion">
+        <!-- VirusTotal Results -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#virustotal">
+              VirusTotal Data
+            </button>
+          </h2>
+          <div id="virustotal" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              {% if vt_error %}
+              <div class="alert alert-warning" role="alert">{{ vt_error }}</div>
+              {% endif %}
+              {% if virustotal %}
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h5 class="card-title">VirusTotal Summary</h5>
+                  {% set stats = virustotal.last_analysis_stats or {} %}
+                  {% set malicious = stats.malicious if stats and stats.malicious is not none else 0 %}
+                  {% set suspicious = stats.suspicious if stats and stats.suspicious is not none else 0 %}
+                  {% set harmless = stats.harmless if stats and stats.harmless is not none else 0 %}
+                  {% set undetected = stats.undetected if stats and stats.undetected is not none else 0 %}
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="badge bg-danger">Malicious: {{ malicious }}</span>
+                    <span class="badge bg-warning text-dark">Suspicious: {{ suspicious }}</span>
+                    <span class="badge bg-success">Harmless: {{ harmless }}</span>
+                    <span class="badge bg-secondary">Undetected: {{ undetected }}</span>
+                  </div>
+                  {% if virustotal.reputation is not none %}
+                  {% set rep = virustotal.reputation %}
+                  {% set rep_badge = 'success' if rep > 0 else ('warning' if rep < 0 else 'secondary' ) %} <p
+                    class="mb-1"><strong>Reputation:</strong> <span class="badge bg-{{ rep_badge }}">{{ rep }}</span>
+                    </p>
+                    {% endif %}
+                    {% if virustotal.total_votes %}
+                    <p class="mb-1"><strong>Community Votes:</strong>
+                      <span class="badge text-bg-light">Harmless: {{ virustotal.total_votes.harmless or 0 }}</span>
+                      <span class="badge text-bg-light">Malicious: {{ virustotal.total_votes.malicious or 0 }}</span>
+                    </p>
+                    {% endif %}
+                    {% if virustotal.categories %}
+                    <p class="mb-1"><strong>Categories:</strong></p>
+                    <div class="d-flex flex-wrap gap-2">
+                      {% for k,v in virustotal.categories.items() %}
+                      <span class="badge text-bg-light">{{ k }}</span>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if virustotal.popularity_ranks %}
+                    <p class="mb-1"><strong>Popularity Ranks:</strong></p>
+                    <ul class="mb-2">
+                      {% for provider, val in virustotal.popularity_ranks.items() %}
+                      {% set rank = (val.rank if val and val.rank is not none else val) %}
+                      <li>{{ provider }}: {{ rank }}</li>
+                      {% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="small text-muted">
+                      {% if virustotal.last_update_date %}<span>Last Update: {{ virustotal.last_update_date }}</span>{%
+                      endif %}
+                      {% if virustotal.last_modification_date %}<span class="ms-2">Last Modified: {{
+                        virustotal.last_modification_date }}</span>{% endif %}
+                    </div>
+                </div>
+              </div>
+              {% if virustotal.whois %}
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">WHOIS</h6>
+                  <pre style="max-height: 220px; overflow:auto; white-space: pre-wrap;">{{ virustotal.whois }}</pre>
+                </div>
+              </div>
+              {% endif %}
+              {% else %}
+              <p class="text-muted">No data found from VirusTotal for this target.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- ProjectDiscovery Results -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingThree">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#projectdiscovery">
+              ProjectDiscovery Data
+            </button>
+          </h2>
+          <div id="projectdiscovery" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              {% if projectdiscovery and projectdiscovery.summary %}
+              <div class="row">
+                {% for item in projectdiscovery.summary %}
+                <div class="col-md-6">
+                  <div class="card mb-3">
+                    <div class="card-body">
+                      {% if item.tool %}<p><strong>Tool:</strong> {{ item.tool }}</p>{% endif %}
+                      {% if item.status_code %}<p><strong>Status Code:</strong> {{ item.status_code }}</p>{% endif %}
+                      {% if item.url %}<p><strong>URL:</strong> {{ item.url }}</p>{% endif %}
+                      {% if item.server %}<p><strong>Server:</strong> {{ item.server }}</p>{% endif %}
+                      {% if item.content_type %}<p><strong>Content Type:</strong> {{ item.content_type }}</p>{% endif %}
+                      {% if item.tls_version %}<p><strong>TLS Version:</strong> {{ item.tls_version }}</p>{% endif %}
+                      {% if item.ip %}<p><strong>IP:</strong> {{ item.ip }}</p>{% endif %}
+                      {% if item.severity %}<p><strong>Severity:</strong> {{ item.severity }}</p>{% endif %}
+                      {% if item.details %}
+                      <div class="mt-2">
+                        <p class="mb-1"><strong>Details:</strong></p>
+                        <pre
+                          style="max-height: 240px; overflow:auto; white-space: pre-wrap;">{{ item.details | tojson(indent=2) }}</pre>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="text-muted">No ProjectDiscovery data available.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    (function () {
+      const btn = document.getElementById('downloadPagePdf');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        const root = document.getElementById('resultsContainerRoot');
+        if (!root) return;
+        const opts = {
+          margin: 10,
+          filename: "scan_results_{{ target|replace(' ', '_') }}.pdf",
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opts).from(root).save();
+      });
+    })();
+  </script>
+</body>
+
+</html>

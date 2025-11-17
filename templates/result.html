@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Scan Results - Surface Attack Monitoring Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .results-container {
+            max-width: 950px;
+            margin: 40px auto;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+  {% include '_navbar.html' %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Attack Monitoring Tool</a>
+            <div class="d-flex">
+                <button class="btn btn-outline-light">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="results-container">
+        <h3 class="text-center mb-4">Scan Results for example.com</h3>
+
+
+        <!-- VirusTotal Results -->
+        <div class="card">
+            <div class="card-header bg-danger text-white">VirusTotal Results</div>
+            <div class="card-body">
+                <p><strong>Detections:</strong> 2/90 engines flagged this domain</p>
+                <p><strong>Status:</strong> <span class="badge bg-warning">Suspicious</span></p>
+            </div>
+        </div>
+
+        <!-- ProjectDiscovery Results -->
+        <div class="card">
+            <div class="card-header bg-success text-white">ProjectDiscovery Results</div>
+            <div class="card-body">
+                <p><strong>Subdomains Found:</strong></p>
+                <ul>
+                    <li>mail.example.com</li>
+                    <li>dev.example.com</li>
+                    <li>api.example.com</li>
+                </ul>
+                <p><strong>Technology Stack Detected:</strong> Nginx, ReactJS, Node.js</p>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">Overall Risk Assessment</div>
+            <div class="card-body">
+                <p>The scanned domain <strong>example.com</strong> shows <span class="text-danger">risky open
+                        ports</span>,
+                    <span class="text-warning">VirusTotal suspicious reports</span>, and several <span
+                        class="text-info">subdomains with exposed technologies</span>.
+                    It is recommended to secure configurations, monitor suspicious activity, and harden subdomain
+                    servers.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

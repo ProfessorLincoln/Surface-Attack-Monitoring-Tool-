@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard - Surface Attack Monitoring Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='asm-favicon.svg') }}">
+    <style>
+        body { background-color: #f8f9fa; }
+        .dashboard-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .results-box { margin-top: 30px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .stat-card { border-radius: 12px; }
+    </style>
+</head>
+
+<style>
+  body { min-height: 100vh; background: linear-gradient(135deg, #1f2937, #0ea5e9); color: #0b132b; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; padding-top: 56px; }
+  .page-card { max-width: 1100px; width: 100%; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,8,23,.22); overflow: hidden; }
+  .page-header { background: linear-gradient(135deg, #0ea5e9, #22c55e); color: #fff; padding: 1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+  .page-title { margin:0; font-size:1.25rem; display:flex; align-items:center; gap:.5rem; }
+  .brand .badge { background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35); }
+  .page-body { padding: 1.5rem; }
+</style>
+
+<body>
+  {% include '_navbar.html' %}
+  <div class="page-card">
+    <div class="page-header">
+      <div class="page-title"><span class="brand"><span class="badge text-bg-light">Dashboard</span></span></div>
+      <div>
+        <a href="/" class="btn btn-outline-light text-dark">New Scan</a>
+        <a href="/history" class="btn btn-outline-light text-dark ms-2">History</a>
+      </div>
+    </div>
+    <div class="page-body">
+      {% if error %}
+        <div class="alert alert-warning">{{ error }}</div>
+      {% endif %}
+
+      {% if guest %}
+        <div class="alert alert-info">Log in to see your personalized dashboard and scan history.</div>
+        <div class="d-flex gap-2 mb-3">
+          <a class="btn btn-primary" href="/login">Login</a>
+          <a class="btn btn-outline-secondary" href="/login/google">Login with Google</a>
+        </div>
+      {% else %}
+        <h3 class="mb-3">Welcome {{ user.username or user.email }}</h3>
+        <!-- Stats Row -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-3">
+            <div class="card stat-card border-primary">
+              <div class="card-body">
+                <h6 class="text-muted">Total Scans</h6>
+                <div class="h4">{{ total or 0 }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="card stat-card border-danger">
+              <div class="card-body">
+                <h6 class="text-muted">High</h6>
+                <div class="h4 text-danger">{{ high or 0 }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="card stat-card border-warning">
+              <div class="card-body">
+                <h6 class="text-muted">Medium</h6>
+                <div class="h4 text-warning">{{ medium or 0 }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="card stat-card border-secondary">
+              <div class="card-body">
+                <h6 class="text-muted">Low</h6>
+                <div class="h4">{{ low or 0 }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Last Scan -->
+        <div class="card mb-3">
+          <div class="card-header">Last Scan</div>
+          <div class="card-body">
+            {% if last %}
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div><strong>Target:</strong> {{ last.target }}</div>
+                  <div><strong>Date:</strong> {{ last.created_at.strftime('%Y-%m-%d %H:%M UTC') if last.created_at else '' }}</div>
+                  <div><strong>Severity:</strong> {{ (last.summary.severity or last.summary.overall_status) if last.summary else 'N/A' }}</div>
+                </div>
+                <div>
+                  <a href="/report/{{ last._id }}" class="btn btn-sm btn-outline-primary">View Report</a>
+                  <a href="/download/{{ last._id }}" class="btn btn-sm btn-outline-success ms-2">Download PDF</a>
+                </div>
+              </div>
+            {% else %}
+              <p class="text-muted mb-0">No scans yet. Start your first scan!</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Recent Scans with Filters -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Recent Scans</span>
+            <a href="/history" class="btn btn-sm btn-outline-secondary">View all</a>
+          </div>
+          <div class="card-body">
+            <form action="{{ url_for('dashboard') }}" method="get" class="row g-2 align-items-end">
+              <div class="col-12 col-md-3">
+                <label class="form-label" for="start_date">Start date</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date or '' }}" class="form-control" />
+              </div>
+              <div class="col-12 col-md-3">
+                <label class="form-label" for="end_date">End date</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date or '' }}" class="form-control" />
+              </div>
+              <div class="col-12 col-md-3">
+                <label class="form-label" for="domain">Domain</label>
+                <input type="text" id="domain" name="domain" value="{{ domain_query or '' }}" placeholder="example.com" class="form-control" />
+              </div>
+              <div class="col-12 col-md-2">
+                <label class="form-label" for="severity">Severity</label>
+                <select id="severity" name="severity" class="form-select">
+                  <option value="" {{ '' == (severity or '') and 'selected' or '' }}>Any</option>
+                  <option value="High" {{ 'High' == (severity or '') and 'selected' or '' }}>High</option>
+                  <option value="Medium" {{ 'Medium' == (severity or '') and 'selected' or '' }}>Medium</option>
+                  <option value="Low" {{ 'Low' == (severity or '') and 'selected' or '' }}>Low</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-1 d-grid">
+                <button type="submit" class="btn btn-primary">Filter</button>
+              </div>
+            </form>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Target</th>
+                  <th>Date</th>
+                  <th>Severity</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in recent %}
+                  <tr>
+                    <td>{{ s.target }}</td>
+                    <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M UTC') if s.created_at else '' }}</td>
+                    <td>{{ (s.summary.severity or s.summary.overall_status) if s.summary else 'N/A' }}</td>
+                    <td class="text-end">
+                      <a href="/report/{{ s._id }}" class="btn btn-sm btn-outline-primary">Report</a>
+                      <a href="/download/{{ s._id }}" class="btn btn-sm btn-outline-success ms-2">Download PDF</a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="4" class="text-muted">No scans found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Quick Actions -->
+      <div class="results-box mt-3">
+        <h5>Quick Actions</h5>
+        <div class="d-flex gap-2">
+          <a class="btn btn-primary" href="/">New Scan</a>
+          <a class="btn btn-outline-secondary" href="/history">History</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
