@@ -7,3 +7,4 @@ authlib
 pyotp
 openai>=1.12.0
 gunicorn
+python-docx
