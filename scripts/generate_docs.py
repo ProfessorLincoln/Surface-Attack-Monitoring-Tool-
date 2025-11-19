@@ -133,7 +133,133 @@ def generate_wbs_docx(path: str = "docs/WBS.docx"):
     doc.save(path)
 
 
+def generate_security_framework_docx(path: str = "docs/SecurityFramework.docx"):
+    doc = Document()
+    doc.add_heading('Security System Framework', level=1)
+    doc.add_paragraph('Use this framework to structure security policies, controls, and operations. Customize per environment and regulatory needs.')
+
+    sections = [
+        ("1. Governance & Policy", [
+            "Define security objectives, risk appetite, and scope",
+            "Publish security policies: data classification, acceptable use, secure coding",
+            "Establish roles and responsibilities (e.g., Admin, Security, DevOps)",
+            "Maintain a risk register and control inventory",
+        ]),
+        ("2. Identity & Access Management (IAM)", [
+            "Authentication: strong passwords, MFA, OAuth/OIDC where applicable",
+            "Authorization: role-based access control (RBAC), least privilege",
+            "Session management: secure cookies, timeouts, re-auth for critical actions",
+            "Access reviews: periodic verification of admin and service accounts",
+        ]),
+        ("3. Data Protection", [
+            "Encryption in transit (TLS) and at rest (database, backups)",
+            "Key management: rotation, storage, access controls",
+            "Data retention and deletion policies",
+            "Secrets management: environment variables, secret stores; never commit .env",
+        ]),
+        ("4. Application Security", [
+            "Input validation and output encoding (prevent XSS/Injection)",
+            "Security headers (CSP, HSTS, X-Frame-Options)",
+            "Dependency management: pin versions, scan for CVEs",
+            "Secure logging and error handling (no sensitive data in logs)",
+        ]),
+        ("5. Network & Infrastructure Security", [
+            "Segmentation and least-exposed services",
+            "Firewalls/WAF and secure inbound/outbound rules",
+            "TLS certificates lifecycle management",
+            "System hardening (ports, services, configs)",
+        ]),
+        ("6. Endpoint & Device Security", [
+            "Patch management and configuration baselines",
+            "Anti-malware/EDR deployment and monitoring",
+            "Restrict local admin rights and removable media",
+        ]),
+        ("7. Monitoring & Detection", [
+            "Centralize logs (auth, admin actions, errors, scans)",
+            "Alerting thresholds and on-call escalation",
+            "Audit trails for admin and sensitive operations",
+        ]),
+        ("8. Incident Response", [
+            "Playbooks for common events (credential compromise, malware, data leak)",
+            "Triaging, containment, eradication, recovery steps",
+            "Communication plans and legal/privacy notifications",
+            "Post-incident review and corrective actions",
+        ]),
+        ("9. Vulnerability Management", [
+            "Regular scanning, code review, and penetration tests",
+            "Threat modeling for high-risk components",
+            "Remediation SLAs by severity; track and verify fixes",
+        ]),
+        ("10. Secure Development Lifecycle (SDL)", [
+            "Security requirements defined early",
+            "Static analysis and secrets scanning in CI",
+            "Peer reviews focused on security and privacy",
+            "Release approvals and rollback procedures",
+        ]),
+        ("11. Compliance & Standards", [
+            "Map controls to NIST CSF / ISO 27001 / local regulations",
+            "Privacy requirements (data minimization, consent, user rights)",
+            "Maintain evidence repository for audits",
+        ]),
+        ("12. Third-Party & Supply Chain", [
+            "Vendor risk assessments and contractual security clauses",
+            "SBOM and dependency provenance; pin and verify sources",
+            "Monitor third-party service status and changes",
+        ]),
+        ("13. Cloud Security", [
+            "Identity and access controls (IAM, keys, roles)",
+            "Baseline configs, logging, and monitoring (e.g., cloud-native tools)",
+            "Backups, DR, and secrets management in cloud services",
+        ]),
+        ("14. Physical Security", [
+            "Access control to facilities and equipment",
+            "Secure storage/disposal of media and backups",
+        ]),
+        ("15. Business Continuity & Disaster Recovery (BC/DR)", [
+            "Define RTO/RPO targets and recovery strategies",
+            "Regular backup testing and DR exercises",
+            "Failover procedures and communication",
+        ]),
+        ("16. Training & Awareness", [
+            "Role-based security training (developers, admins, users)",
+            "Phishing and social engineering awareness",
+            "Secure coding and infrastructure hardening training",
+        ]),
+        ("17. Metrics & Reporting", [
+            "KPIs/KRIs (patching cadence, MTTR, incident counts)",
+            "Security posture dashboards and risk trends",
+            "Executive reporting cadence",
+        ]),
+    ]
+
+    for title, items in sections:
+        doc.add_heading(title, level=2)
+        for it in items:
+            p = doc.add_paragraph(it)
+            p.style = doc.styles['List Bullet']
+
+    # Add a simple NIST CSF mapping table
+    doc.add_heading('Appendix: NIST CSF Mapping', level=2)
+    table = doc.add_table(rows=6, cols=2)
+    table.style = 'Table Grid'
+    table.cell(0, 0).text = 'Function'
+    table.cell(0, 1).text = 'Example Controls'
+    mappings = [
+        ('Identify', 'Governance & Policy, Risk Register, Asset Inventory'),
+        ('Protect', 'IAM, Data Protection, Application & Network Security, Training'),
+        ('Detect', 'Monitoring & Detection, Audit Logs, Alerts'),
+        ('Respond', 'Incident Response Playbooks, Communications, Triage'),
+        ('Recover', 'BC/DR, Backups, Post-incident Improvements'),
+    ]
+    for i, (func, ctrls) in enumerate(mappings, start=1):
+        table.cell(i, 0).text = func
+        table.cell(i, 1).text = ctrls
+
+    doc.add_paragraph('Notes: tailor controls to your stack and compliance obligations; ensure roles and SLAs are defined.')
+    doc.save(path)
+
 if __name__ == "__main__":
     generate_gantt_docx()
     generate_wbs_docx()
-    print("Generated: docs/Gantt.docx and docs/WBS.docx")
+    generate_security_framework_docx()
+    print("Generated: docs/Gantt.docx, docs/WBS.docx, docs/SecurityFramework.docx")
